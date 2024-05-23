@@ -4,9 +4,9 @@ import (
 	_ "fmt"
 	"log"
 
-	http_srv "github.com/edcox96/devmon/server/http_server"
-	mvc "github.com/edcox96/devmon/server/mvc"
-	store "github.com/edcox96/devmon/server/storage"
+	http_srv "github.com/edcox96/devmon/server/internl/http_server"
+	mvc "github.com/edcox96/devmon/server/internal/mvc"
+	store "github.com/edcox96/devmon/server/internal/storage"
 )
 
 func main() {

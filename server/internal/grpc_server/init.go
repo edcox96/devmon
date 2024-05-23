@@ -4,6 +4,6 @@ import (
 	"fmt"
 )
 
-func InitGrpcServer() {
+func NewGrpcServer() {
 	fmt.Printf("InitGrpcServer")
 }
