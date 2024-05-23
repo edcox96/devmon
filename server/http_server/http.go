@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"io"
+	"errors"
+
+	"devmon/storage"
 )
 
 /* Function for creating http servers based on the http package at a specified address. */
@@ -17,8 +21,9 @@ func NewHTTPServer(addr string) *http.Server {
 
 	// Handle get and post requests at the root path of the server using the handler functions defined below.
 	mux.HandleFunc("/", httpsrv.rootFunc)
-	mux.HandleFunc("GET /task", httpsrv.handleConsume)
-	mux.HandleFunc("POST /task", httpsrv.handleProduce)
+	mux.HandleFunc("PUT /v1/key/{key}", httpsrv.keyValuePutHandler)
+	mux.HandleFunc("GET /v1/key/{key}", httpsrv.keyValueGetHandler)
+	mux.HandleFunc("DELETE /v1/key/{key}", httpsrv.keyValueDeleteHandler)
 
 	// Create a server from the http package at the address passed using the defined ServeMux and return the server.
 	server := http.Server{
@@ -30,31 +35,35 @@ func NewHTTPServer(addr string) *http.Server {
 
 /* Type httpServer used for defining our server. */
 type httpServer struct {
-	Log *Log
+	kvStore *storage.Store
 }
 
 /* Used for initializing the httpServer with a new log. */
 func newHttpServer() *httpServer {
 	return &httpServer{
-		Log: NewLog(),
+		kvStore: storage.NewStore(),
 	}
 }
 
 /* Request and Response structs. */
-type ProduceRequest struct {
-	Record Record `json:"record"`
+type Request struct {
+	Value string `json:"value"`
 }
 
-type ProduceResponse struct {
-	Offset uint64 `json:"offset"`
+type GetRequest struct {
+	Key string `json:"key"`
 }
 
-type ConsumeRequest struct {
-	Offset uint64 `json:"offset"`
+type PutResponse struct {
+	Added bool `json:"added"`
 }
 
-type ConsumeResponse struct {
-	Record Record `json:"record"`
+type GetResponse struct {
+	Value string `json:"value"`
+}
+
+type DeleteResponse struct {
+	Removed bool `json:"removed"`
 }
 
 func (s *httpServer) rootFunc(w http.ResponseWriter, r *http.Request) {
@@ -66,27 +75,26 @@ func (s *httpServer) rootFunc(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to / handler")
 }
 
-/* Server handler for POST requests writing to the server's log. */
-func (s *httpServer) handleProduce(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handleProduce")
+/* Server handler for PUT requests adding key/value pairs to the server's key/value store. */
+func (s *httpServer) keyValuePutHandler(w http.ResponseWriter, r *http.Request) {
 
-	// Unmarshal the JSON request's body and handle any errors.
-	var req ProduceRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
+	// Get the key and value from the JSON request and handle any errors.
+	key := r.PathValue("key")
+	value, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Append the request record to the log and handle any errors.
-	offset, err := s.Log.Append(req.Record)
+	// Add the key/value pair to the store and handle any errors.
+	err = s.kvStore.Put(key, string(value))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Marshal the resulting ProduceResponse and write to the response, handling any errors.
-	res := ProduceResponse{Offset: offset}
+	// Marshal the resulting PutResponse and write it, handling any errors.
+	res := PutResponse{true}
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -94,21 +102,13 @@ func (s *httpServer) handleProduce(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/* Server hadler for GET requests reading from the server's log. */
-func (s *httpServer) handleConsume(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handleConsume")
+/* Server hadler for GET requests reading from the server's kvStore. */
+func (s *httpServer) keyValueGetHandler(w http.ResponseWriter, r *http.Request) {
 
-	// Unmarshal the JSON request's body and handle any errors.
-	var req ConsumeRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Read the requested record from the log and handle any errors.
-	record, err := s.Log.Read(req.Offset)
-	if err == ErrOffsetNotFound {
+	// Get the key from the JSON request, the value from the kvStore and handle any errors.
+	key := r.PathValue("key")
+	value, err := s.kvStore.Get(key)
+	if errors.Is(err, storage.ErrorKeyNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -117,8 +117,38 @@ func (s *httpServer) handleConsume(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Marshal the resulting ConsumeResponse and write to the response, handling any errors.
-	res := ConsumeResponse{Record: record}
+	// Marshal the resulting GetResponse and write it, handling any errors.
+	res := GetResponse{string(value)}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+
+func (s *httpServer) keyValueDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the key from the JSON request, check if it is in the kvStore, and handle any errors.
+	key := r.PathValue("key")
+	_, err := s.kvStore.Get(key)
+	if errors.Is(err, storage.ErrorKeyNotFound) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the key from the kvStore and handle any errors.
+	err = s.kvStore.Delete(key)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Marshal the resulting DeleteResponse and write it, handling any errors.
+	res := DeleteResponse{Removed: true}
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ethancox127/devmon/server/http_server"
+	"devmon/server/http_server"
 )
 
 func main() {
