@@ -15,21 +15,38 @@ func NewHTTPServer() error {
 	}
 	httpSrv.host = host
 	
-	httpSrv.mux = newServerMux()
+	httpSrv.mux = httpSrv.newServerMux()
 	httpSrv.server = nil
 
 	return nil
 }
 
-func newServerMux() http.ServeMux {
+func (hs *HttpServer) newServerMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	// add mux handlers
 
-	
+	return mux;
+}
+
+func (hs *HttpServer) newHttpServer() error {
+	hs.server = &http.Server {
+		Addr:    hs.host,
+		Handler: hs.mux,
+	}
+	return nil
+}
+
+func StartServer() {
+	if httpSrv.server == nil {
+	   log.Fatalf("httpSrv.server is nil")
+	}
+	log.Fatal(httpSrv.server.ListenAndServe())
 }
 
 type HttpServer struct {
 	host    string;
 	server *http.Server;
-    mux     http.ServeMux;
+    mux    *http.ServeMux;
 }
 
 var httpSrv = &HttpServer {}

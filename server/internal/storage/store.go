@@ -1,4 +1,4 @@
-package storage
+package main
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ var store = Store{kvLog: make(map[string]string)}
 
 var ErrorKeyNotFound = errors.New("key not found")
 
-func NewStore() error {
+func InitStorage() error {
 	return nil
 }
 
