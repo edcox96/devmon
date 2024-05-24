@@ -2,8 +2,6 @@ module github.com/edcox96/devmon
 
 go 1.22.2
 
-replace github.com/edcox96/devmon => /Users/edcox/projects/golang/devmon
-
 require github.com/stretchr/testify v1.9.0
 
 require (
