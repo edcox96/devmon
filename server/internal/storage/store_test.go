@@ -1,13 +1,12 @@
-package main
+package storage
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
-//	"github.com/go-errors/errors"
-// 	"github.com/stretchr/testify/require"
 
 func TestPut(t *testing.T) {
-/*
 	const key = "put_key"
 	const value = "put_value"
 
@@ -27,49 +26,44 @@ func TestPut(t *testing.T) {
 	val, ok = store.kvLog[key]
 	require.True(t, ok, "Put new key/value failed")
 	require.Equal(t, val, value)
-*/
 }
 
 func TestGet(t *testing.T) {
-/*
-	const key = "get_key"
-	const value = "get_value"
+	   const key = "get_key"
+	   const value = "get_value"
 
-	var val interface{}
-	var err error
+	   var val interface{}
+	   var err error
 
-	defer delete(store.kvLog, key)
+	   defer delete(store.kvLog, key)
 
-	// check key isn't already present
-	val, err = Get(key)
-	require.Error(t, err)
-	require.EqualError(t, err, "key not found")
+	   // check key isn't already present
+	   val, err = Get(key)
+	   require.Error(t, err)
+	   require.EqualError(t, err, "key not found")
 
-	store.kvLog[key] = value
+	   store.kvLog[key] = value
 
-	val, err = Get(key)
-	require.NoError(t, err)
-	require.Equal(t, val, value)
-*/
+	   val, err = Get(key)
+	   require.NoError(t, err)
+	   require.Equal(t, val, value)
 }
 
 func TestDelete(t *testing.T) {
-/*
-	const key = "delete_key"
-	const value = "delete_value"
+	   const key = "delete_key"
+	   const value = "delete_value"
 
-	var ok bool
+	   var ok bool
 
-	defer delete(store.kvLog, key)
+	   defer delete(store.kvLog, key)
 
-	store.kvLog[key] = value
+	   store.kvLog[key] = value
 
-	_, ok = store.kvLog[key]
-	require.True(t, ok, "key/value pair doesn't exist")
+	   _, ok = store.kvLog[key]
+	   require.True(t, ok, "key/value pair doesn't exist")
 
-	Delete(key)
+	   Delete(key)
 
-	_, ok = store.kvLog[key]
-	require.False(t, ok, "Delete failed")
-*/
+	   _, ok = store.kvLog[key]
+	   require.False(t, ok, "Delete failed")
 }

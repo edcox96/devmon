@@ -4,8 +4,9 @@ import (
 	_ "fmt"
 	"log"
 
-	http_srv "github.com/edcox96/devmon/server/internal/http_server"
-	mvc "github.com/edcox96/devmon/server/internal/mvc"
+	"github.com/edcox96/devmon/server/internal/mvc"
+
+	httpsrv "github.com/edcox96/devmon/server/internal/http_server"
 )
 
 func main() {
@@ -17,13 +18,13 @@ func main() {
 	}
 
 	// Create the http_server
-	err := http_srv.NewHTTPServer()
+	err := httpsrv.NewHTTPServer()
 	if err != nil {
 		log.Fatalf("NewHTTPServer failed, err %s", err)
 	}
 
 	// MVC and http_server ready, Start http processing requests
-	http_srv.StartServer()
+	httpsrv.StartServer()
 }
 
 type DevMonState struct {

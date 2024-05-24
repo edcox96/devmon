@@ -15,17 +15,25 @@ func NewHTTPServer() error {
 	}
 	httpSrv.host = host
 	
-	httpSrv.mux = httpSrv.newServerMux()
-	httpSrv.server = nil
+	if err := httpSrv.newServerMux(); err != nil {
+		log.Printf("httpSrv.newServeMux failed, err %s\n", err)
+		return err
+	}
+
+	if err := httpSrv.newHttpServer(); err != nil {
+		log.Printf("httpSrv.newServeMux failed, err %s\n", err)
+		return err
+	}
 
 	return nil
 }
 
-func (hs *HttpServer) newServerMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	// add mux handlers
+func (hs *HttpServer) newServerMux() error {
+	hs.mux = http.NewServeMux()
 
-	return mux;
+	// add mux handlers here
+
+	return nil;
 }
 
 func (hs *HttpServer) newHttpServer() error {

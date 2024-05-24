@@ -5,5 +5,5 @@ import (
 )
 
 func NewGrpcServer() {
-	fmt.Printf("InitGrpcServer")
+	fmt.Printf("NewGrpcServer")
 }
