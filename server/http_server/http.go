@@ -17,6 +17,13 @@ func NewHTTPServer(addr string) *http.Server {
 	if httpsrv == nil {
 		return nil
 	}
+
+	fmt.Println("Initializing transaction log")
+	err := httpsrv.initializeTransactionLog()
+	if err != nil {
+		fmt.Println("Unable to initialize transaction log, returning")
+		return nil
+	}
 	mux := http.NewServeMux()
 
 	// Handle get and post requests at the root path of the server using the handler functions defined below.
@@ -32,6 +39,8 @@ func NewHTTPServer(addr string) *http.Server {
 	}
 	return &server
 }
+
+var logger TransactionLogger
 
 /* Type httpServer used for defining our server. */
 type httpServer struct {
@@ -66,6 +75,40 @@ type DeleteResponse struct {
 	Removed bool `json:"removed"`
 }
 
+func (s *httpServer) initializeTransactionLog() error {
+    var err error
+
+	fmt.Println("creating new file transaction logger")
+    logger, err = NewFileTransactionLogger("transaction.log")
+    if err != nil {
+        return fmt.Errorf("failed to create event logger: %w", err)
+    }
+
+	fmt.Println("Reading events")
+    events, errors := logger.ReadEvents()
+
+    e := Event{}
+    ok := true
+
+    for ok && err == nil {
+        select {
+        case err, ok = <-errors:            // Retrieve any errors
+        case e, ok = <-events:
+            switch e.EventType {
+            case EventDelete:               // Got a DELETE event!
+                err = s.kvStore.Delete(e.Key)
+            case EventPut:                  // Got a PUT event!
+                err = s.kvStore.Put(e.Key, e.Value)
+            }
+        }
+    }
+
+    logger.Run()
+
+	fmt.Println(err)
+    return err
+}
+
 func (s *httpServer) rootFunc(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rootFunc")
 	if r.URL.Path != "/" {
@@ -88,6 +131,7 @@ func (s *httpServer) keyValuePutHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Add the key/value pair to the store and handle any errors.
 	err = s.kvStore.Put(key, string(value))
+	logger.WritePut(key, string(value))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -142,6 +186,7 @@ func (s *httpServer) keyValueDeleteHandler(w http.ResponseWriter, r *http.Reques
 
 	// Delete the key from the kvStore and handle any errors.
 	err = s.kvStore.Delete(key)
+	logger.WriteDelete(key)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
