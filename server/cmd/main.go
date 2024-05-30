@@ -12,7 +12,7 @@ import (
 func main() {
 	log.Printf("server main\n")
 
-	// Create the mvc to init Controller and Views
+	// Create the mvc Controller which will also create the Model and Views
 	if err := mvc.NewController(); err != nil {
 		log.Fatalf("NewCotroller failed, err %s\n", err)
 	}

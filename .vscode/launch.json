@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch HTTP Server Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}"
+        },
+        {
             "name": "Launch TestPut function",
             "type": "go",
             "request": "launch",
@@ -16,7 +23,7 @@
             ]
         },
         {
-            "name": "Launch Package",
+            "name": "Launch Console Agent Package",
             "type": "go",
             "request": "launch",
             "mode": "auto",
