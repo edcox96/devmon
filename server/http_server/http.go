@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"devmon/storage"
+	"devmon/server/event_logging"
 )
 
 /* Function for creating http servers based on the http package at a specified address. */
@@ -19,7 +20,7 @@ func NewHTTPServer(addr string) *http.Server {
 	}
 
 	fmt.Println("Initializing transaction log")
-	err := httpsrv.initializeTransactionLog()
+	err := httpsrv.initializeEventLog()
 	if err != nil {
 		fmt.Println("Unable to initialize transaction log, returning")
 		return nil
@@ -40,7 +41,7 @@ func NewHTTPServer(addr string) *http.Server {
 	return &server
 }
 
-var logger TransactionLogger
+var logger event_logging.EventLogger
 
 /* Type httpServer used for defining our server. */
 type httpServer struct {
@@ -75,11 +76,11 @@ type DeleteResponse struct {
 	Removed bool `json:"removed"`
 }
 
-func (s *httpServer) initializeTransactionLog() error {
+func (s *httpServer) initializeEventLog() error {
     var err error
 
-	fmt.Println("creating new file transaction logger")
-    logger, err = NewFileTransactionLogger("transaction.log")
+	fmt.Println("creating new file event logger")
+    logger, err = event_logging.NewFileEventLogger("events.log")
     if err != nil {
         return fmt.Errorf("failed to create event logger: %w", err)
     }
@@ -87,7 +88,7 @@ func (s *httpServer) initializeTransactionLog() error {
 	fmt.Println("Reading events")
     events, errors := logger.ReadEvents()
 
-    e := Event{}
+    e := event_logging.Event{}
     ok := true
 
     for ok && err == nil {
@@ -95,9 +96,9 @@ func (s *httpServer) initializeTransactionLog() error {
         case err, ok = <-errors:            // Retrieve any errors
         case e, ok = <-events:
             switch e.EventType {
-            case EventDelete:               // Got a DELETE event!
+            case event_logging.EventDelete:               // Got a DELETE event!
                 err = s.kvStore.Delete(e.Key)
-            case EventPut:                  // Got a PUT event!
+            case event_logging.EventPut:                  // Got a PUT event!
                 err = s.kvStore.Put(e.Key, e.Value)
             }
         }
