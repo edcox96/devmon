@@ -4,36 +4,43 @@ package usb.v1;
 
 option go_package = "github/edcox96/devmon/api/usb_v1";
 
-//service Usb {
-//  rpc PutUsbDeviceInfo(PutUsbDeviceInfoRequest) returns (PutDeviceInfoResponse) {}
-//}
+service Usb {
+  rpc PutUsbDevConn(PutUsbDevConnRequest) returns (PutUsbDevConnResponse) {}
+  rpc PutUsbDevDesc(PutUsbDevDescRequest) returns (PutUsbDevDescResponse) {}
+}
 
 // gousb DeviceInfo contains:
 //   connection state: device speed and it's parent hub speed.
 //   device descriptor: read-only info describing the device
 
-message UsbDeviceInfo {
-  message UsbDevConnection { // parent hub device connection info
-    int32 Bus     = 1;  // USB Bus number
-    int32 HubPort = 2;  // Parent Hub Port (Root Hub is port 0)
-    int32 Address = 3;  // USB Device Address on Bus n
-    UsbSpeed Speed = 4;  // USB Device Speed over Parent Hub connection
-    repeated int32 Paths = 5; // list of parent hub ports from Root Port 
-  }
-  message UsbDeviceDesc { // includes strings instead of string indexes
-    BCD    Spec           = 1; // compliant with USB Spec major.minor
-    uint32 Class          = 2; // USB device class
-    uint32 SubClass       = 3; // USB device sub class
-    uint32 Protocol       = 4; // Interface Protocol
-    uint32 MaxCtrlPktSize = 5; // Control interface max pkt size
-    uint32 VendorID       = 6; // ID assigned to Vendor of device
-    uint32 ProductID      = 7; // ID assigned by Manufacturer
-    BCD    Version        = 8; // Device Version
-    string Manufacturer   = 9; // return string using iManufacturer index
-    string Product        = 10; // return string using iProduct index
-    string SerialNum      = 11; // return string using iSerialNumber index
-    uint32 NumConfigs     = 12;   // Configuration descriptor count
-  }
+message PutUsbDevConnRequest { // parent hub device connection info
+  int32 Bus     = 1;  // USB Bus number
+  int32 HubPort = 2;  // Parent Hub Port (Root Hub is port 0)
+  int32 Address = 3;  // USB Device Address on Bus n
+  UsbSpeed Speed = 4;  // USB Device Speed over Parent Hub connection
+  repeated int32 Paths = 5; // list of parent hub ports from Root Port 
+}
+message PutUsbDevConnResponse {
+  int32 result = 1;
+}
+
+message PutUsbDevDescRequest { // includes strings instead of string indexes
+  BCD    Spec           = 1; // compliant with USB Spec major.minor
+  uint32 Class          = 2; // USB device class
+  uint32 SubClass       = 3; // USB device sub class
+  uint32 Protocol       = 4; // Interface Protocol
+  uint32 MaxCtrlPktSize = 5; // Control interface max pkt size
+  uint32 VendorID       = 6; // ID assigned to Vendor of device
+  uint32 ProductID      = 7; // ID assigned by Manufacturer
+  BCD    Version        = 8; // Device Version
+  string Manufacturer   = 9; // return string using iManufacturer index
+  string Product        = 10; // return string using iProduct index
+  string SerialNum      = 11; // return string using iSerialNumber index
+  uint32 NumConfigs     = 12;   // Configuration descriptor count
+}
+
+message PutUsbDevDescResponse {
+  int32 result = 1;
 }
 
 message BCD {
