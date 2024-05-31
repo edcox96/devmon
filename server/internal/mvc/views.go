@@ -1,10 +1,10 @@
 package mvc
 
 import (
-	"log"
+    "log"
 )
 
 func NewViews() error {
-	log.Printf("NewViews")
-	return nil
+    log.Printf("NewViews")
+    return nil
 }

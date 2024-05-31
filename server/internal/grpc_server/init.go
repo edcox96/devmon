@@ -1,9 +1,9 @@
 package grpc_server
 
 import (
-	"fmt"
+    "fmt"
 )
 
 func NewGrpcServer() {
-	fmt.Printf("NewGrpcServer")
+    fmt.Printf("NewGrpcServer")
 }

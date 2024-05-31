@@ -1,12 +1,12 @@
 package mvc
 
 import (
-	"log"
-	_ "strings"
+    "log"
+    _ "strings"
 )
 
 func NewModel() error {
-	log.Printf("NewModel\n")
+    log.Printf("NewModel\n")
 
-	return nil
+    return nil
 }

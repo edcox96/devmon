@@ -1,30 +1,30 @@
 package main
 
 import (
-	_ "fmt"
-	"log"
+    _ "fmt"
+    "log"
 
-	"github.com/edcox96/devmon/server/internal/mvc"
+    "github.com/edcox96/devmon/server/internal/mvc"
 
-	httpsrv "github.com/edcox96/devmon/server/internal/http_server"
+    httpsrv "github.com/edcox96/devmon/server/internal/http_server"
 )
 
 func main() {
-	log.Printf("server main\n")
+    log.Printf("server main\n")
 
-	// Create the mvc Controller which will also create the Model and Views
-	if err := mvc.NewController(); err != nil {
-		log.Fatalf("NewCotroller failed, err %s\n", err)
-	}
+    // Create the mvc Controller which will also create the Model and Views
+    if err := mvc.NewController(); err != nil {
+        log.Fatalf("NewCotroller failed, err %s\n", err)
+    }
 
-	// Create the http_server
-	err := httpsrv.NewHTTPServer()
-	if err != nil {
-		log.Fatalf("NewHTTPServer failed, err %s", err)
-	}
+    // Create the http_server
+    err := httpsrv.NewHTTPServer()
+    if err != nil {
+        log.Fatalf("NewHTTPServer failed, err %s", err)
+    }
 
-	// MVC and http_server ready, Start http processing requests
-	httpsrv.StartServer()
+    // MVC and http_server ready, Start http processing requests
+    httpsrv.StartServer()
 }
 
 type DevMonState struct {
