@@ -9,6 +9,9 @@ import (
 )
 
 type EventLogger interface {
+	GetEvents() chan Event
+	GetErrors() chan error
+	GetSequenceNumber() int
 	WriteDelete(key string)
 	WritePut(key, value string)
 	Err() <-chan error
@@ -33,8 +36,8 @@ const (
 )
 
 type FileEventLogger struct {
-	events chan<-Event
-	errors <-chan error
+	events chan Event
+	errors chan error
 	lastSequence uint64
 	file *os.File
 }
@@ -47,7 +50,20 @@ func NewFileEventLogger(filename string) (EventLogger, error) {
 	return &FileEventLogger{file: file}, nil
 }
 
+func (l *FileEventLogger) GetEvents() chan Event {
+	return l.events
+}
+
+func (l *FileEventLogger) GetErrors() chan error {
+	return l.errors
+}
+
+func (l *FileEventLogger) GetSequenceNumber() int {
+	return int(l.lastSequence)
+}
+
 func (l *FileEventLogger) WritePut(key, value string) {
+	fmt.Println("In WritePut")
 	l.events <- Event{EventType: EventPut, Key: key, Value: value, EventTime: time.Now()}
 }
 
@@ -68,9 +84,12 @@ func (l *FileEventLogger) Run() {
 
 	go func() {
 		for e := range events {
+			fmt.Println(len(events))
 			l.lastSequence++
 			_, err := fmt.Fprintf(l.file, "%s\t%d\t%d\t%s\t%s\n", e.EventTime.UTC().Format(time.UnixDate), l.lastSequence, e.EventType, e.Key, e.Value)
 			if err != nil {
+				fmt.Println("error")
+				fmt.Println(err)
 				errors <- err
 				return
 			}
