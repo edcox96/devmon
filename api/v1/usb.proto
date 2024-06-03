@@ -5,7 +5,7 @@ package usb.v1;
 option go_package = "github/edcox96/devmon/api/usb_v1";
 
 service Usb {
-  rpc PutUsbDevConn(PutUsbDevConnRequest) returns (PutUsbDevConnResponse) {}
+  rpc PutUsbDevConnState(PutUsbDevConnRequest) returns (PutUsbDevConnResponse) {}
   rpc PutUsbDevDesc(PutUsbDevDescRequest) returns (PutUsbDevDescResponse) {}
 }
 
@@ -18,7 +18,7 @@ message PutUsbDevConnRequest { // parent hub device connection info
   int32 HubPort = 2;  // Parent Hub Port (Root Hub is port 0)
   int32 Address = 3;  // USB Device Address on Bus n
   UsbSpeed Speed = 4;  // USB Device Speed over Parent Hub connection
-  repeated int32 Paths = 5; // list of parent hub ports from Root Port 
+  repeated int32 Path = 5; // list of parent hub ports from Root Port 
 }
 message PutUsbDevConnResponse {
   int32 result = 1;
@@ -36,7 +36,7 @@ message PutUsbDevDescRequest { // includes strings instead of string indexes
   string Manufacturer   = 9; // return string using iManufacturer index
   string Product        = 10; // return string using iProduct index
   string SerialNum      = 11; // return string using iSerialNumber index
-  uint32 NumConfigs     = 12;   // Configuration descriptor count
+  uint32 NumConfigs     = 12; // Configuration descriptor count
 }
 
 message PutUsbDevDescResponse {
@@ -45,7 +45,7 @@ message PutUsbDevDescResponse {
 
 message BCD {
   uint32 BcdValue = 1;  // major and minor bytes in decimal
-};
+}
 
 enum UsbSpeed {
     USB_SPEED_UNKNOWN  = 0;
@@ -54,4 +54,4 @@ enum UsbSpeed {
     USB_SPEED_FULL    = 3;
     USB_SPEED_SUPER   = 4;
     USB_SPEED_SUPER_PLUS = 5;
-};
+}

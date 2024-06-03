@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UsbClient interface {
-	PutUsbDevConn(ctx context.Context, in *PutUsbDevConnRequest, opts ...grpc.CallOption) (*PutUsbDevConnResponse, error)
+	PutUsbDevConnState(ctx context.Context, in *PutUsbDevConnRequest, opts ...grpc.CallOption) (*PutUsbDevConnResponse, error)
 	PutUsbDevDesc(ctx context.Context, in *PutUsbDevDescRequest, opts ...grpc.CallOption) (*PutUsbDevDescResponse, error)
 }
 
@@ -34,9 +34,9 @@ func NewUsbClient(cc grpc.ClientConnInterface) UsbClient {
 	return &usbClient{cc}
 }
 
-func (c *usbClient) PutUsbDevConn(ctx context.Context, in *PutUsbDevConnRequest, opts ...grpc.CallOption) (*PutUsbDevConnResponse, error) {
+func (c *usbClient) PutUsbDevConnState(ctx context.Context, in *PutUsbDevConnRequest, opts ...grpc.CallOption) (*PutUsbDevConnResponse, error) {
 	out := new(PutUsbDevConnResponse)
-	err := c.cc.Invoke(ctx, "/usb.v1.Usb/PutUsbDevConn", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/usb.v1.Usb/PutUsbDevConnState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *usbClient) PutUsbDevDesc(ctx context.Context, in *PutUsbDevDescRequest,
 // All implementations must embed UnimplementedUsbServer
 // for forward compatibility
 type UsbServer interface {
-	PutUsbDevConn(context.Context, *PutUsbDevConnRequest) (*PutUsbDevConnResponse, error)
+	PutUsbDevConnState(context.Context, *PutUsbDevConnRequest) (*PutUsbDevConnResponse, error)
 	PutUsbDevDesc(context.Context, *PutUsbDevDescRequest) (*PutUsbDevDescResponse, error)
 	mustEmbedUnimplementedUsbServer()
 }
@@ -65,8 +65,8 @@ type UsbServer interface {
 type UnimplementedUsbServer struct {
 }
 
-func (UnimplementedUsbServer) PutUsbDevConn(context.Context, *PutUsbDevConnRequest) (*PutUsbDevConnResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PutUsbDevConn not implemented")
+func (UnimplementedUsbServer) PutUsbDevConnState(context.Context, *PutUsbDevConnRequest) (*PutUsbDevConnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutUsbDevConnState not implemented")
 }
 func (UnimplementedUsbServer) PutUsbDevDesc(context.Context, *PutUsbDevDescRequest) (*PutUsbDevDescResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutUsbDevDesc not implemented")
@@ -84,20 +84,20 @@ func RegisterUsbServer(s grpc.ServiceRegistrar, srv UsbServer) {
 	s.RegisterService(&Usb_ServiceDesc, srv)
 }
 
-func _Usb_PutUsbDevConn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Usb_PutUsbDevConnState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PutUsbDevConnRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsbServer).PutUsbDevConn(ctx, in)
+		return srv.(UsbServer).PutUsbDevConnState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/usb.v1.Usb/PutUsbDevConn",
+		FullMethod: "/usb.v1.Usb/PutUsbDevConnState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsbServer).PutUsbDevConn(ctx, req.(*PutUsbDevConnRequest))
+		return srv.(UsbServer).PutUsbDevConnState(ctx, req.(*PutUsbDevConnRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,8 +128,8 @@ var Usb_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UsbServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PutUsbDevConn",
-			Handler:    _Usb_PutUsbDevConn_Handler,
+			MethodName: "PutUsbDevConnState",
+			Handler:    _Usb_PutUsbDevConnState_Handler,
 		},
 		{
 			MethodName: "PutUsbDevDesc",

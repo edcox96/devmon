@@ -8,6 +8,8 @@ import (
     "net/http"
     _ "strings"
     _ "sync"
+
+    model "github.com/edcox96/devmon/server/internal/mvc/model"
 )
 
 var ErrorModelCreationFailed = errors.New("unable to create model")
@@ -17,7 +19,7 @@ func NewController() error {
     log.Printf("NewController")
 
     // Create the Model to handle request access to storage
-    if err := NewModel(); err != nil {
+    if err := model.NewModel(); err != nil {
         return ErrorModelCreationFailed
     }
 

@@ -1,0 +1,11 @@
+# install libusb 1.0
+brew install libusb
+# this was suggested being needed but fixlibusb_darwin.sh not found so still TODO
+fixlibusb_darwin.sh /usr/local/lib/libusb-1.0/libusb.h
+brew install pkg-config
+export PKG_CONFIG_PATH=/usr/local/Cellar/libusb/1.0.27/lib/pkgconfig/
+#add this to shell env .zshrc and source .zshrc
+#add "env" to .vscode/launch.json
+#get gousb packages
+go get -v github.com/google/gousb
+go get -v github.com/google/gousb{,/usbid}
