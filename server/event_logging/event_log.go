@@ -37,7 +37,9 @@ const (
 
 type FileEventLogger struct {
 	events chan Event
+	testEvents chan Event
 	errors chan error
+	testErrors chan error
 	lastSequence uint64
 	file *os.File
 }
@@ -51,11 +53,11 @@ func NewFileEventLogger(filename string) (EventLogger, error) {
 }
 
 func (l *FileEventLogger) GetEvents() chan Event {
-	return l.events
+	return l.testEvents
 }
 
 func (l *FileEventLogger) GetErrors() chan error {
-	return l.errors
+	return l.testErrors
 }
 
 func (l *FileEventLogger) GetSequenceNumber() int {
@@ -65,10 +67,12 @@ func (l *FileEventLogger) GetSequenceNumber() int {
 func (l *FileEventLogger) WritePut(key, value string) {
 	fmt.Println("In WritePut")
 	l.events <- Event{EventType: EventPut, Key: key, Value: value, EventTime: time.Now()}
+	l.testEvents <- Event{EventType: EventPut, Key: key, Value: value, EventTime: time.Now()}
 }
 
 func (l *FileEventLogger) WriteDelete(key string) {
 	l.events <- Event{EventType: EventDelete, Key: key, Value: "Delete", EventTime: time.Now()}
+	l.testEvents <- Event{EventType: EventDelete, Key: key, Value: "Delete", EventTime: time.Now()}
 }
 
 func (l *FileEventLogger) Err() <- chan error {
@@ -79,18 +83,25 @@ func (l *FileEventLogger) Run() {
 	events := make(chan Event, 16)
 	l.events = events
 
+	testEvents := make(chan Event, 16)
+	l.testEvents = testEvents
+
 	errors := make(chan error, 1)
 	l.errors = errors
 
+	testErrors := make(chan error, 1)
+	l.testErrors = testErrors
+
 	go func() {
 		for e := range events {
-			fmt.Println(len(events))
+			fmt.Printf("event %v\n", e)
 			l.lastSequence++
 			_, err := fmt.Fprintf(l.file, "%s\t%d\t%d\t%s\t%s\n", e.EventTime.UTC().Format(time.UnixDate), l.lastSequence, e.EventType, e.Key, e.Value)
 			if err != nil {
 				fmt.Println("error")
 				fmt.Println(err)
 				errors <- err
+				testErrors <- err
 				return
 			}
 		}
