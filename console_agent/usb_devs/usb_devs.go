@@ -1,15 +1,15 @@
-package usb_devs
+package console_agent
 
 import (
 	"context"
 	"fmt"
 	"log"
 
-    model "github.com/edcox96/devmon/server/internal/mvc/model"
     api "github.com/edcox96/devmon/api/v1"
 	_ "google.golang.org/grpc"
 	"github.com/google/gousb"
 )
+//    _ "github.com/edcox96/devmon/server/internal/mvc/model"
 
 func OpenUsbDev(vid, pid gousb.ID) (*gousb.Device, error)  {
     devs, err := GetUsbDevsWithVidPid(vid, pid)
@@ -103,7 +103,7 @@ func SendUsbInfoToServer(usbClient api.UsbClient, dev *gousb.Device) error {
         log.Fatalf("Connect failed! %s", err)
     }
     
-    usbClient.PutUsbDevConn(ctx, devConnReq)
+    usbClient.PutUsbDevConnState(ctx, devConnReq)
     // put usb desc and usb conn state
 
     return nil
