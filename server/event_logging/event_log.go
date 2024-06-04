@@ -14,8 +14,8 @@ type EventLogger interface {
 	GetSequenceNumber() int
 	WriteDelete(key string)
 	WritePut(key, value string)
-	Err() <-chan error
-	ReadEvents() (<-chan Event, <-chan error)
+	Err() chan error
+	ReadEvents() (chan Event, chan error)
 	Run()
 }
 
@@ -65,7 +65,6 @@ func (l *FileEventLogger) GetSequenceNumber() int {
 }
 
 func (l *FileEventLogger) WritePut(key, value string) {
-	fmt.Println("In WritePut")
 	l.events <- Event{EventType: EventPut, Key: key, Value: value, EventTime: time.Now()}
 	l.testEvents <- Event{EventType: EventPut, Key: key, Value: value, EventTime: time.Now()}
 }
@@ -75,7 +74,7 @@ func (l *FileEventLogger) WriteDelete(key string) {
 	l.testEvents <- Event{EventType: EventDelete, Key: key, Value: "Delete", EventTime: time.Now()}
 }
 
-func (l *FileEventLogger) Err() <- chan error {
+func (l *FileEventLogger) Err() chan error {
 	return l.errors
 }
 
@@ -94,11 +93,9 @@ func (l *FileEventLogger) Run() {
 
 	go func() {
 		for e := range events {
-			fmt.Printf("event %v\n", e)
 			l.lastSequence++
 			_, err := fmt.Fprintf(l.file, "%s\t%d\t%d\t%s\t%s\n", e.EventTime.UTC().Format(time.UnixDate), l.lastSequence, e.EventType, e.Key, e.Value)
 			if err != nil {
-				fmt.Println("error")
 				fmt.Println(err)
 				errors <- err
 				testErrors <- err
@@ -108,7 +105,7 @@ func (l *FileEventLogger) Run() {
 	}()
 }
 
-func (l *FileEventLogger) ReadEvents() (<-chan Event, <-chan error) {
+func (l *FileEventLogger) ReadEvents() (chan Event, chan error) {
 	scanner := bufio.NewScanner(l.file)
 	outEvent := make(chan Event)
 	outError := make(chan error, 1)
@@ -123,7 +120,6 @@ func (l *FileEventLogger) ReadEvents() (<-chan Event, <-chan error) {
 			line := scanner.Text()
 			fields := strings.Split(line, "\t")
 			e.EventTime, _ = time.Parse("Thu May 30 19:50:02 UTC 2024", fields[1])
-			fmt.Println(fields[1:])
 
 			if _, err := fmt.Sscanf(strings.Join(fields[1:], "\t"), "%d\t%d\t%s\t%s",
                 &e.SequenceNumber, &e.EventType, &e.Key, &e.Value); err != nil {
