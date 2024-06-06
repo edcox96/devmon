@@ -9,18 +9,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewGrpcServer() error {
+func NewGrpcServer() (*UsbGrpcServer, error) {
 	gsrv := grpc.NewServer()
 	m := model.NewUsbModel()
 
 	usbSrv, err := newGrpcServer(m)
 	if err != nil {
 		log.Printf("newGrpcSeerver failed. %s", err)
-		return err
+		return nil, err
 	}
    	api.RegisterUsbServer(gsrv, usbSrv)
 
-	return nil
+	return usbSrv, nil
 }
 
 func newGrpcServer(m *model.UsbModel) (*UsbGrpcServer, error) {
