@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-    model "github.com/edcox96/devmon/server/internal/mvc/model"
+    model "github.com/edcox96/devmon/internal/mvc/model"
     api "github.com/edcox96/devmon/api/v1"
 	"google.golang.org/grpc"
 )

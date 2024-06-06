@@ -8,7 +8,7 @@ import (
     "testing"
 
     _ "github.com/stretchr/testify/require"
-    "github.com/edcox96/devmon/server/internal/mvc"
+    "github.com/edcox96/devmon/internal/mvc"
     "github.com/edcox96/devmon/client/http_clients"
 )
 
