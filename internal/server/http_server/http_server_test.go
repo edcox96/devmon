@@ -43,6 +43,7 @@ func setupTest(t *testing.T) () {
 
 // call the http_client to run REST API tests and then reset the server
 func clientAgent(begin <-chan string) {
+    log.Printf("clientAgent running")
     <-begin
 
     http_client.ClientRestAPITests()

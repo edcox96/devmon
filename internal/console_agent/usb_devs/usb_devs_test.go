@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	api "github.com/edcox96/devmon/api/v1"
-	usb_devs "github.com/edcox96/devmon/console_agent/usb_devs"
+	usb_devs "github.com/edcox96/devmon/internal/console_agent/usb_devs"
 	"github.com/google/gousb"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
