@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	usb_devs "github.com/edcox96/devmon/console_agent/usb_devs"
+	usb_devs "github.com/edcox96/devmon/internal/console_agent/usb_devs"
 )
 
 var (

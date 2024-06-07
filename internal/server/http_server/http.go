@@ -8,7 +8,7 @@ import (
     "os"
     "strings"
 
-    "github.com/edcox96/devmon/internal/mvc"
+    "github.com/edcox96/devmon/internal/server/mvc"
 )
 
 func NewHTTPServer() error {

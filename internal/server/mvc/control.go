@@ -9,7 +9,7 @@ import (
     _ "strings"
     _ "sync"
 
-    model "github.com/edcox96/devmon/internal/mvc/model"
+    model "github.com/edcox96/devmon/internal/server/mvc/model"
 )
 
 var ErrorModelCreationFailed = errors.New("unable to create model")
