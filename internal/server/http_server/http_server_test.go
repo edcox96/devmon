@@ -9,7 +9,7 @@ import (
 
     _ "github.com/stretchr/testify/require"
     "github.com/edcox96/devmon/internal/server/mvc"
-    "github.com/edcox96/devmon/client/http_clients"
+    "github.com/edcox96/devmon/internal/client/http_clients"
 )
 
 func TestMain(m *testing.M) {
