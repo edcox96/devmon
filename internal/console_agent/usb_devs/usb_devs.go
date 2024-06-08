@@ -4,29 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 
 	api "github.com/edcox96/devmon/api/v1"
 	"github.com/google/gousb"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
-
-//    _ "github.com/edcox96/devmon/server/internal/mvc/model"
-
-func Connect(lis net.Listener) (api.UsbClient, error) {
-	ccOpts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	}
-	cc, err := grpc.NewClient(lis.Addr().String(), ccOpts...)
-	if err != nil {
-		return nil, err
-	}
-
-	client := api.NewUsbClient(cc)
-
-	return client, nil
-}
 
 func OpenUsbDev(vid, pid gousb.ID) (*gousb.Device, error) {
 	devs, err := GetUsbDevsWithVidPid(vid, pid)
@@ -84,31 +65,12 @@ func GetDevices(ctx *gousb.Context, vid, pid gousb.ID) ([]*gousb.Device, error) 
 	return devs, nil
 }
 
-//func GetUsbDevDesc(ctx *context.Context) error {
-	/*dev, err := ctx.OpenDeviceWithVIDPID(vid, pid)
-	if err != nil {
-		log.Fatalf("Could not open a device: %v", err)
-	}
-	if dev == nil {
-		return nil
-	}
-
-	// dev found
-	//defer dev.Close()
-
-	log.Printf("Camera device info: %v", dev)
-	log.Printf("Camera device desc: %v", dev.Desc)
-	log.Printf("bus %d, addres %d\n", dev.Desc.Bus, dev.Desc.Address)
-	*/
-//	return nil
-//}
-
 func SendUsbInfoToServer(usbClient api.UsbClient) error {
 	ctx := context.Background()
 
 	// TODO - replace with enumerated device list
 	// HACK - for now just hardcode the camera device vid/pid
-	vid, pid := gousb.ID(0x04b4), gousb.ID(0x00f3)
+	vid, pid := gousb.ID(0x04b4), gousb.ID(0x00f9)
 	dev, err := OpenUsbDev(vid, pid)
 	if err != nil {
 		return err
@@ -130,7 +92,6 @@ func SendUsbInfoToServer(usbClient api.UsbClient) error {
 	}
 
 	usbClient.PutUsbDevConnState(ctx, devConnReq)
-	// put usb desc and usb conn state
 
 	return nil
 }
@@ -140,18 +101,18 @@ func NewPutUsbDevDescReq(client api.UsbClient,
 	desc := dev.Desc
 	spec := api.BCD{BcdValue: uint32(desc.Spec)}
 	devVer := api.BCD{BcdValue: uint32(desc.Device)}
-/*	man, err := dev.Manufacturer()
-	if err != nil {
-		return nil, err
-	}
-	prodstr, err := dev.Product()
-	if err != nil {
-		return nil, err
-	}
-	sn, err := dev.SerialNumber()
-	if err != nil {
-		return nil, err
-	}*/
+	/*	man, err := dev.Manufacturer()
+		if err != nil {
+			return nil, err
+		}
+		prodstr, err := dev.Product()
+		if err != nil {
+			return nil, err
+		}
+		sn, err := dev.SerialNumber()
+		if err != nil {
+			return nil, err
+		}*/
 
 	putUsbDevDesc := api.PutUsbDevDescRequest{
 		Spec:           &spec,
@@ -162,10 +123,10 @@ func NewPutUsbDevDescReq(client api.UsbClient,
 		VendorID:       uint32(desc.Vendor),
 		ProductID:      uint32(desc.Product),
 		Version:        &devVer,
-	/*	Manufacturer:   man,
-		Product:        prodstr,
-		SerialNum:      sn,*/
-		NumConfigs:     uint32(len(desc.Configs)),
+		/*	Manufacturer:   man,
+			Product:        prodstr,
+			SerialNum:      sn,*/
+		NumConfigs: uint32(len(desc.Configs)),
 	}
 
 	return &putUsbDevDesc, nil

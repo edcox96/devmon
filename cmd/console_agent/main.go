@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 
+	cons_agent "github.com/edcox96/devmon/internal/console_agent"
 	usb_devs "github.com/edcox96/devmon/internal/console_agent/usb_devs"
 )
 
@@ -17,14 +17,9 @@ func main() {
 	flag.Parse()
 	fmt.Printf("console_agent\n")
 
-	lis, err := net.Listen("tcp", "localhost:8080")
+	usbClient, err := cons_agent.NewGrpcUsbClient("localhost:8080")
 	if err != nil {
-		log.Fatalf("net.listen failed: %s", err)
-	}
-
-	usbClient, err := usb_devs.Connect(lis)
-	if err != nil {
-		log.Fatalf("Connect failed! %s", err)
+		log.Fatalf("NewGrpcUsbClient failed! %s", err)
 	}
 
 	err = usb_devs.SendUsbInfoToServer(usbClient)
