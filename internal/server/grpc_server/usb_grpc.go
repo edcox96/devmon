@@ -52,7 +52,7 @@ func (s *UsbGrpcServer) PutUsbDevDesc(ctx context.Context,
 	log.Printf("PusUsbDevDesc: Spec %x", req.Spec.BcdValue)
 
 	s.model.PutUsbDevDesc(req)
-	
+
 	resp := &api.PutUsbDevConnResponse{}
 	log.Printf("resp %s", resp)
 	return nil, nil
@@ -61,6 +61,9 @@ func (s *UsbGrpcServer) PutUsbDevDesc(ctx context.Context,
 func (s *UsbGrpcServer) PutUsbDevConnState(ctx context.Context,
 	req *api.PutUsbDevConnRequest) (*api.PutUsbDevConnResponse, error) {
 	log.Printf("PusUsbDevConnState")
+
+	s.model.PutUsbDevConnState(req)
+
 	resp := &api.PutUsbDevConnResponse{}
 	log.Printf("resp %s", resp)
 	return nil, nil
