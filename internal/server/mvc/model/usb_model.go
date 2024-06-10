@@ -1,23 +1,89 @@
 package model
 
 import (
-	_ "log"
+	"log"
+	"errors"
 
     api "github.com/edcox96/devmon/api/v1"
 )
 
-type UsbModel struct {
-	devDesc *UsbDevDesc
-	devConn *UsbDevConnState
+func NewUsbModel() *UsbModel {
+	um := &usbModel
+	um.Consoles = make([]*Console, 0, 2)
+	return um
 }
 
 var usbModel = UsbModel {}
 
-func NewUsbModel() *UsbModel {
-	return &usbModel
+type UsbModel struct {
+	Consoles []*Console
 }
 
-func (um *UsbModel) PutUsbDevDesc(pbDesc *api.PutUsbDevDescRequest) error {
+func (um *UsbModel) RegisterConsole(pbCons *api.RegisterConsoleRequest) error {
+	con := um.NewConsole()
+	
+	con.Name = pbCons.Name
+	con.SN = pbCons.SN
+	con.ID = pbCons.ID
+	
+	con.UsbDevs = make([]*UsbDevice, 0, 2)
+
+	um.Consoles = append(um.Consoles, con)
+	return nil
+}
+
+func (um *UsbModel) NewConsole() *Console {
+	return new(Console)
+}
+
+type Console struct {
+	Name string
+	SN   string
+	ID   uint64
+	UsbDevs []*UsbDevice
+}
+
+func NewUsbDevice() (*UsbDevice, error) {
+	return nil, nil
+}
+
+type UsbDevice struct {
+	consId  uint64
+	devType UsbDevType
+	devTypeNum uint32
+	vid     uint32
+	pid 	uint32
+	devDesc *UsbDevDesc
+	devConn *UsbDevConnState
+}
+
+type UsbDevType byte
+
+const (
+	UsbDevTypeUnknown UsbDevType = iota
+	UsbDevTypeCamera  UsbDevType = iota
+)
+
+func (con *Console) RegisterUsbDevice(pbDev *api.RegisterUsbDeviceRequest) error {
+	if pbDev.ConsID != con.ID {
+		log.Printf("RegisterUsbDevice: dev conID %d, conID %d mismatch!",
+				   pbDev.ConsID, con.ID)
+		return errors.New("invalid console ID")
+	}
+
+	dev := new(UsbDevice)
+	dev.consId = pbDev.ConsID
+	dev.devType = UsbDevType(pbDev.DevType)
+	dev.pid = pbDev.Pid
+	dev.vid = pbDev.Vid
+	dev.devTypeNum = pbDev.DevTypeNum
+	
+	con.UsbDevs = append(con.UsbDevs, dev)
+
+	return nil
+}
+
+func (dev *UsbDevice) PutUsbDevDesc(pbDesc *api.PutUsbDevDescRequest) error {
 	desc := newUsbDevDesc()
 	
 	desc.usbVer.bcdValue = pbDesc.Spec.BcdValue
@@ -32,7 +98,7 @@ func (um *UsbModel) PutUsbDevDesc(pbDesc *api.PutUsbDevDescRequest) error {
 	desc.product = pbDesc.Product
 	desc.numConfigs = pbDesc.NumConfigs
 
-	um.devDesc = desc
+	dev.devDesc = desc
 
 	return nil
 }
@@ -55,7 +121,7 @@ type UsbDevDesc struct {
     numConfigs uint32
 }
 
-func (um *UsbModel) PutUsbDevConnState(pbConn *api.PutUsbDevConnRequest) error {
+func (dev *UsbDevice) PutUsbDevConnState(pbConn *api.PutUsbDevConnRequest) error {
 	conn := newUsbDevConnState()
 	
 	conn.bus     = pbConn.Bus
@@ -64,7 +130,7 @@ func (um *UsbModel) PutUsbDevConnState(pbConn *api.PutUsbDevConnRequest) error {
 	conn.speed   = int32(pbConn.Speed.Enum().Number())
 	conn.path    = pbConn.Path
 
-	um.devConn = conn
+	dev.devConn = conn
 	return nil
 }
 

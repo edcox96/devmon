@@ -5,8 +5,32 @@ package usb.v1;
 option go_package = "github/edcox96/devmon/api/usb_v1";
 
 service Usb {
+  rpc RegisterConsole(RegisterConsoleRequest) returns (RegisterConsoleResponse) {}
+  rpc RegisterUsbDevice(RegisterUsbDeviceRequest) returns (RegisterUsbDeviceResponse) {}
   rpc PutUsbDevConnState(PutUsbDevConnRequest) returns (PutUsbDevConnResponse) {}
   rpc PutUsbDevDesc(PutUsbDevDescRequest) returns (PutUsbDevDescResponse) {}
+}
+
+message RegisterConsoleRequest {
+  string Name = 1; // descriptive name for console
+  string SN   = 2; // Serial Number
+  uint64 ID   = 3; // ID number for console
+}
+
+message RegisterConsoleResponse {
+  int32 result = 1;
+}
+
+message RegisterUsbDeviceRequest {
+  uint64 consID = 1;
+  int32  devType = 2;
+  uint32 devTypeNum = 3;
+  uint32 vid = 4;
+  uint32 pid = 5;
+}
+
+message RegisterUsbDeviceResponse {
+  int32 result = 1;
 }
 
 // gousb DeviceInfo contains:
@@ -20,6 +44,7 @@ message PutUsbDevConnRequest { // parent hub device connection info
   UsbSpeed Speed = 4;  // USB Device Speed over Parent Hub connection
   repeated int32 Path = 5; // list of parent hub ports from Root Port 
 }
+
 message PutUsbDevConnResponse {
   int32 result = 1;
 }

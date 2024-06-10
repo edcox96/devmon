@@ -47,24 +47,50 @@ type UsbGrpcServer struct {
 
 var usbGrpcSrv = &UsbGrpcServer{}
 
+func (s *UsbGrpcServer) RegisterConsole(ctx context.Context,
+	req *api.RegisterConsoleRequest) (*api.RegisterConsoleResponse, error) {
+	log.Printf("RegisterConsole: ")
+
+	s.model.RegisterConsole(req)
+	resp := &api.RegisterConsoleResponse{}
+	log.Printf("resp %v", resp)
+
+	return resp, nil
+}
+
+func (s *UsbGrpcServer) RegisterUsbDevice(ctx context.Context,
+	req *api.RegisterUsbDeviceRequest) (*api.RegisterUsbDeviceResponse,
+	error) {
+	log.Printf("RegisterDevice: ")
+
+	con := s.model.Consoles[req.ConsID - 1]
+	con.RegisterUsbDevice(req)
+	resp := &api.RegisterUsbDeviceResponse{}
+	log.Printf("resp %v", resp)
+
+	return resp, nil
+}
+
 func (s *UsbGrpcServer) PutUsbDevDesc(ctx context.Context,
 	req *api.PutUsbDevDescRequest) (*api.PutUsbDevDescResponse, error) {
 	log.Printf("PusUsbDevDesc: Spec %x", req.Spec.BcdValue)
+	con := s.model.Consoles[0]
 
-	s.model.PutUsbDevDesc(req)
+	con.UsbDevs[0].PutUsbDevDesc(req)
 
-	resp := &api.PutUsbDevConnResponse{}
-	log.Printf("resp %s", resp)
-	return nil, nil
+	resp := &api.PutUsbDevDescResponse{}
+	log.Printf("resp %v", resp)
+	return resp, nil
 }
 
 func (s *UsbGrpcServer) PutUsbDevConnState(ctx context.Context,
 	req *api.PutUsbDevConnRequest) (*api.PutUsbDevConnResponse, error) {
 	log.Printf("PusUsbDevConnState")
+	con := s.model.Consoles[0]
 
-	s.model.PutUsbDevConnState(req)
+	con.UsbDevs[0].PutUsbDevConnState(req)
 
 	resp := &api.PutUsbDevConnResponse{}
-	log.Printf("resp %s", resp)
+	log.Printf("resp %v", resp)
 	return nil, nil
 }

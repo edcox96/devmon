@@ -6,6 +6,8 @@ import (
 	"log"
 
 	api "github.com/edcox96/devmon/api/v1"
+	devsim "github.com/edcox96/devmon/internal/devsim"
+	model "github.com/edcox96/devmon/internal/server/mvc/model"
 	"github.com/google/gousb"
 )
 
@@ -65,8 +67,16 @@ func GetDevices(ctx *gousb.Context, vid, pid gousb.ID) ([]*gousb.Device, error) 
 	return devs, nil
 }
 
-func SendUsbInfoToServer(usbClient api.UsbClient) error {
+func SendUsbInfoToServer(usbClient api.UsbClient, conId uint64) error {
 	ctx := context.Background()
+
+	regConReq, err := NewRegisterConsoleReq(usbClient, conId)
+	if err != nil {
+		log.Printf("NewRegisterConsoleReq failed! %s", err)
+		return err
+	}
+
+	usbClient.RegisterConsole(ctx, regConReq)
 
 	// TODO - replace with enumerated device list
 	// HACK - for now just hardcode the camera device vid/pid
@@ -75,6 +85,15 @@ func SendUsbInfoToServer(usbClient api.UsbClient) error {
 	if err != nil {
 		return err
 	}
+
+	regDevReq, err := NewRegisterUsbDeviceReq(usbClient,
+		conId, uint32(vid), uint32(pid))
+	if err != nil {
+		log.Printf("NewRegisterDeviceReq failed! %s", err)
+		return err
+	}
+
+	usbClient.RegisterUsbDevice(ctx, regDevReq)
 
 	// create and send PutUsbDevDescReq
 	devDescReq, err := NewPutUsbDevDescReq(usbClient, dev)
@@ -94,6 +113,42 @@ func SendUsbInfoToServer(usbClient api.UsbClient) error {
 	usbClient.PutUsbDevConnState(ctx, devConnReq)
 
 	return nil
+}
+
+func NewRegisterConsoleReq(client api.UsbClient,
+	    id uint64) (*api.RegisterConsoleRequest, error) {
+	regCons := &api.RegisterConsoleRequest{}
+
+	con, err := devsim.GetConsole(id)
+	if err != nil {
+		log.Printf("devsim.GetConsole(%d) failed! %s", id, err)
+		return nil, err
+	}
+
+	regCons.ID = con.ID
+	regCons.Name = con.Name
+	regCons.SN = con.SN
+
+	return regCons, nil
+}
+
+func NewRegisterUsbDeviceReq(client api.UsbClient,
+	id uint64, vid uint32, pid uint32) (*api.RegisterUsbDeviceRequest, error) {
+	regDev := &api.RegisterUsbDeviceRequest{}
+
+	con, err := devsim.GetConsole(id)
+	if err != nil {
+		log.Printf("devsim.GetConsole(%d) failed! %s", id, err)
+		return nil, err
+	}
+
+	regDev.ConsID = con.ID
+	regDev.DevType = int32(model.UsbDevTypeCamera)
+	regDev.DevTypeNum = 1
+	regDev.Vid = vid
+	regDev.Pid = pid
+
+	return regDev, nil
 }
 
 func NewPutUsbDevDescReq(client api.UsbClient,

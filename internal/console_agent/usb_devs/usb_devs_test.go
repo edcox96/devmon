@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	cons_agent "github.com/edcox96/devmon/internal/console_agent"
+	devsim "github.com/edcox96/devmon/internal/devsim"
 	usb_devs "github.com/edcox96/devmon/internal/console_agent/usb_devs"
 	grpc_srv "github.com/edcox96/devmon/internal/server/grpc_server"
 	"github.com/google/gousb"
@@ -35,7 +36,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("NewGrpcUsbClient failed! %s", err)
 	}
 
-	err = usb_devs.SendUsbInfoToServer(usbClient)
+	// init the devsim consoles
+	err = devsim.InitDevSim()
+	if err != nil {
+		log.Fatalf("devsim.InitDevSim failed! %v", err)
+	}
+
+	err = usb_devs.SendUsbInfoToServer(usbClient, 1)
 	if err != nil {
 		log.Fatalf("SendUsbInfoToServer failed, %s", err)
 	}
