@@ -43,10 +43,6 @@ type Console struct {
 	UsbDevs []*UsbDevice
 }
 
-func NewUsbDevice() (*UsbDevice, error) {
-	return nil, nil
-}
-
 type UsbDevice struct {
 	consId  uint64
 	devType UsbDevType
@@ -79,7 +75,6 @@ func (con *Console) RegisterUsbDevice(pbDev *api.RegisterUsbDeviceRequest) error
 	dev.devTypeNum = pbDev.DevTypeNum
 	
 	con.UsbDevs = append(con.UsbDevs, dev)
-
 	return nil
 }
 
@@ -99,7 +94,6 @@ func (dev *UsbDevice) PutUsbDevDesc(pbDesc *api.PutUsbDevDescRequest) error {
 	desc.numConfigs = pbDesc.NumConfigs
 
 	dev.devDesc = desc
-
 	return nil
 }
 
