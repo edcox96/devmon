@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/stretchr/testify/require"
 )
@@ -15,6 +16,7 @@ var eventLogger EventLogger
 var err error
 var readKeys []string
 var readValues []string
+var lock = sync.NewCond(&sync.Mutex{})
 
 const n = 50
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -62,8 +64,12 @@ func ReceiveEvents(t *testing.T, eventsChannel chan Event, errorsChannel chan er
 	}
 }
 
-func WaitForEventLogger() {
-	for eventLogger.GetSequenceNumber() < n {}
+func WaitForEventLogger(c *sync.Cond) {
+	c.L.Lock()
+	for eventLogger.GetSequenceNumber() < n {
+		c.Wait()
+	}
+	c.L.Unlock()
 }
 
 func ReadEventLog(readKeys []string, readValues []string) {
@@ -111,6 +117,7 @@ func TestWritePut(t *testing.T) {
 	// Getting the events and errors channels from the event logger and creating slices for sent and received event values.
 	eventsChannel := eventLogger.GetEvents()
 	errorsChannel := eventLogger.GetErrors()
+	cond := eventLogger.GetWritten()
 	keys := make([]string, n)
 	values := make([]string, n)
 	receivedKeys := make([]string, n)
@@ -132,7 +139,7 @@ func TestWritePut(t *testing.T) {
 	// Receiving the events from the test channel and waiting for the event log to finish writing events to file.
 	fmt.Println("Receiving the events from the test channel and waiting for the event log to finish writing")
 	ReceiveEvents(t, eventsChannel, errorsChannel, receivedKeys, receivedValues)
-	WaitForEventLogger()
+	WaitForEventLogger(cond)
 
 	// Checking that the sent and received values are equal.
 	fmt.Println("Checking that the sent and received values are equal")
@@ -153,6 +160,7 @@ func TestWriteDelete(t *testing.T) {
 	// Getting the events and errors channels from the event logger and creating slices for sent and received event values.
 	eventsChannel := eventLogger.GetEvents()
 	errorsChannel := eventLogger.GetErrors()
+	cond := eventLogger.GetWritten()
 	keys := make([]string, n)
 	values := make([]string, n)
 	receivedKeys := make([]string, n)
@@ -173,7 +181,7 @@ func TestWriteDelete(t *testing.T) {
 	// Receiving the events from the test channel and waiting for the event log to finish writing events to file.
 	fmt.Println(" Receiving the events from the test channel and waiting for the event log to finish writing")
 	ReceiveEvents(t, eventsChannel, errorsChannel, receivedKeys, receivedValues)
-	WaitForEventLogger()
+	WaitForEventLogger(cond)
 
 	// Checking that the sent and received values are equal.
 	fmt.Println("Checking that the sent and received values are equal")
@@ -193,6 +201,7 @@ func TestFullRun(t *testing.T) {
 	// Getting the events and errors channels from the event logger and creating slices for sent, received, and read event values.
 	eventsChannel := eventLogger.GetEvents()
 	errorsChannel := eventLogger.GetErrors()
+	cond := eventLogger.GetWritten()
 	keys := make([]string, n)
 	values := make([]string, n)
 	receivedKeys := make([]string, n)
@@ -221,7 +230,7 @@ func TestFullRun(t *testing.T) {
 	// Receiving the events from the test channel and waiting for the event log to finish writing events to file.
 	fmt.Println("Receiving the events from the test channel and waiting for the event log to finish writing")
 	ReceiveEvents(t, eventsChannel, errorsChannel, receivedKeys, receivedValues)
-	WaitForEventLogger()
+	WaitForEventLogger(cond)
 
 	// Reading the event log file storing the key and value from each line.
 	fmt.Println("Reading the event log file storing the key and value from each line")

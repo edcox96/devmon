@@ -6,12 +6,14 @@ import (
 	"bufio"
 	"time"
 	"strings"
+	"sync"
 )
 
 type EventLogger interface {
 	GetEvents() chan Event
 	GetErrors() chan error
 	GetSequenceNumber() int
+	GetWritten() *sync.Cond
 	WriteDelete(key string)
 	WritePut(key, value string)
 	Err() chan error
@@ -41,6 +43,7 @@ type FileEventLogger struct {
 	errors chan error
 	testErrors chan error
 	lastSequence uint64
+	written *sync.Cond
 	file *os.File
 }
 
@@ -49,7 +52,8 @@ func NewFileEventLogger(filename string) (EventLogger, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot open event log file: %w", err)
 	}
-	return &FileEventLogger{file: file}, nil
+	written := sync.NewCond(&sync.Mutex{})
+	return &FileEventLogger{file: file, written: written}, nil
 }
 
 func (l *FileEventLogger) GetEvents() chan Event {
@@ -62,6 +66,10 @@ func (l *FileEventLogger) GetErrors() chan error {
 
 func (l *FileEventLogger) GetSequenceNumber() int {
 	return int(l.lastSequence)
+}
+
+func (l *FileEventLogger) GetWritten() *sync.Cond {
+	return l.written
 }
 
 func (l *FileEventLogger) WritePut(key, value string) {
@@ -93,7 +101,10 @@ func (l *FileEventLogger) Run() {
 
 	go func() {
 		for e := range events {
+			l.written.L.Lock()
 			l.lastSequence++
+			l.written.L.Unlock()
+			l.written.Signal()
 			_, err := fmt.Fprintf(l.file, "%s\t%d\t%d\t%s\t%s\n", e.EventTime.UTC().Format(time.UnixDate), l.lastSequence, e.EventType, e.Key, e.Value)
 			if err != nil {
 				fmt.Println(err)
